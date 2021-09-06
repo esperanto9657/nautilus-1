@@ -280,6 +280,36 @@ impl Mutator {
         return Ok(());
     }
 
+    pub fn mut_random_rule<F>(
+        &mut self,
+        tree: &Tree,
+        ctx: &Context,
+        tester: &mut F,
+    ) -> Result<(), SubprocessError>
+    where
+        F: FnMut(&TreeMutation, &Context) -> Result<(), SubprocessError>,
+    {
+        let n = NodeID::from(rand::thread_rng().gen_range(0, tree.size()));
+        let old_rule_id = tree.get_rule_id(n);
+
+        println!("n: {}", n.to_i());
+        println!("size: {}", tree.size());
+        let rule_ids = ctx
+            .get_rules_for_nt(ctx.get_nt(&RuleIDOrCustom::Rule(old_rule_id)))
+            .to_vec(); //TODO: Maybe find a better solution
+        for new_rule_id in rule_ids {
+            if old_rule_id != new_rule_id {
+                let random_size = ctx.get_random_len_for_ruleid(&new_rule_id);
+                self.scratchpad
+                    .generate_from_rule(new_rule_id, random_size, ctx);
+                let repl = tree.mutate_replace_from_tree(n, &self.scratchpad, NodeID::from(0));
+                tester(&repl, ctx)?;
+            }
+        }
+        
+        return Ok(());
+    }
+
     fn find_parent_with_nt(tree: &Tree, mut node: NodeID, ctx: &Context) -> Option<NodeID> {
         let nt = tree.get_rule(node, ctx).nonterm();
         while let Some(parent) = tree.get_parent(node) {

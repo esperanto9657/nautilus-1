@@ -58,8 +58,10 @@ fn process_input(
 ) -> Result<(), SubprocessError> {
     match inp.state {
         InputState::Init(start_index) => {
-            let end_index = start_index + 200;
+            let end_index = start_index + 500;
 
+            //inp.state = InputState::Det((0, 0));
+            
             if state.minimize(inp, start_index, end_index)? {
                 inp.state = InputState::Det((0, 0));
             } else {
@@ -67,7 +69,8 @@ fn process_input(
             }
         }
         InputState::Det((cycle, start_index)) => {
-            let end_index = start_index + 1;
+            state.random_rule(inp)?;
+            /*let end_index = start_index + 1;
             if state.deterministic_tree_mutation(inp, start_index, end_index)? {
                 if cycle == config.number_of_deterministic_mutations {
                     inp.state = InputState::Random;
@@ -79,12 +82,12 @@ fn process_input(
             }
             state.splice(inp)?;
             state.havoc(inp)?;
-            state.havoc_recursion(inp)?;
+            state.havoc_recursion(inp)?;*/
         }
         InputState::Random => {
-            state.splice(inp)?;
+            /*state.splice(inp)?;
             state.havoc(inp)?;
-            state.havoc_recursion(inp)?;
+            state.havoc_recursion(inp)?;*/
         }
     }
     return Ok(());

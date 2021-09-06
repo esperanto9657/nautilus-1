@@ -61,7 +61,7 @@ impl FuzzingState {
         let ctx = &mut self.ctx;
         let fuzzer = &mut self.fuzzer;
 
-        let min_simple = self.mutator.minimize_tree(
+        /*let min_simple = self.mutator.minimize_tree(
             &mut input.tree,
             &input.fresh_bits,
             ctx,
@@ -85,7 +85,7 @@ impl FuzzingState {
             },
         )?;
 
-        if min_simple && min_rec {
+        if min_simple && min_rec {*/
             //Only do this when minimization is completely done
             let now = Instant::now();
             while self
@@ -114,7 +114,7 @@ impl FuzzingState {
             .expect("Could not create queue entry, are you sure $workdir/outputs exists?");
             input.tree.unparse_to(&ctx, &mut file);
             return Ok(true);
-        }
+        //}
 
         return Ok(false);
     }
@@ -198,6 +198,24 @@ impl FuzzingState {
                 },
             )?;
         }
+        return Ok(());
+    }
+
+    pub fn random_rule(&mut self, input: &mut QueueItem) -> Result<(), SubprocessError> {
+        let ctx = &mut self.ctx;
+        let fuzzer = &mut self.fuzzer;
+        let mut file1 = File::create(format!(
+            "{}/outputs/timeout/aid:{:09}", //TODO FIX PATH TO WORKDIR
+            &self.config.path_to_workdir, input.id
+        ))
+        .expect("Could not create entry, are you sure $workdir/outputs exists?");
+        input.tree.unparse_to(&ctx, &mut file1);
+        self.mutator.mut_random_rule(&input.tree, ctx, &mut |t: &TreeMutation, ctx: &Context| {
+            fuzzer
+                .run_on_with_dedup(t, ExecutionReason::Havoc, ctx)
+                .map(|_| ())
+        })?;
+        
         return Ok(());
     }
 

@@ -199,6 +199,12 @@ impl Fuzzer {
                         }
                     }
                 }
+                let mut file2 = File::create(format!(
+                    "{}/outputs/timeout/bid:{:09}", //TODO FIX PATH TO WORKDIR
+                    self.work_dir, self.execution_count
+                ))
+                .expect("Could not create entry, are you sure $workdir/outputs exists?");
+                tree.unparse_to(ctx, &mut file2);
             }
             ExitReason::Timeouted => {
                 self.global_state
